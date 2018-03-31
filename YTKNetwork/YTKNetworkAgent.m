@@ -24,7 +24,7 @@
 #import "YTKNetworkAgent.h"
 #import "YTKNetworkConfig.h"
 #import "YTKNetworkPrivate.h"
-#import "YTKInterpreter.h"
+#import "YTKTokenManager.h"
 #import <pthread/pthread.h>
 
 #if __has_include(<AFNetworking/AFNetworking.h>)
@@ -37,6 +37,8 @@
 #define Unlock() pthread_mutex_unlock(&_lock)
 
 #define kYTKNetworkIncompleteDownloadFolderName @"Incomplete"
+
+extern NSString * const YTKNotificationTokenGetSuccess;
 
 @implementation YTKNetworkAgent {
     AFHTTPSessionManager *_manager;
@@ -74,7 +76,7 @@
         // Take over the status code validation
         _manager.responseSerializer.acceptableStatusCodes = _allStatusCodes;
         _manager.completionQueue = _processingQueue;
-        [[YTKInterpreter sharedInstance]setDelegate:self];
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(onTokenGetSuccess:) name:YTKNotificationTokenGetSuccess object:nil];
     }
     return self;
 }
@@ -95,6 +97,22 @@
     }
     return _xmlParserResponseSerialzier;
 }
+
+#pragma mark - notification
+
+- (void)onTokenGetSuccess:(NSNotification *)notify{
+    if (notify.object) {
+        Lock();
+        [_requestsRecord enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, YTKBaseRequest * _Nonnull obj, BOOL * _Nonnull stop) {
+            if (obj.requestTask&&[obj.requestTask.currentRequest valueForHTTPHeaderField:@"X-token"]) {
+                [obj.requestTask.currentRequest setValue:[(NSDictionary *)notify.object valueForKey:@"atoken" ] forKey:@"X-token"];
+            }
+            [obj.requestTask resume];
+        }];
+        Unlock();
+    }
+}
+
 
 #pragma mark -
 
@@ -163,6 +181,18 @@
             [requestSerializer setValue:value forHTTPHeaderField:httpHeaderField];
         }
     }
+    
+    // If api needs to send token value to HTTPHeaderField
+    if ([request sendToken]) {
+        NSDictionary<NSString *, NSString *> *tokenDictionary = [request tokenDictionary];
+        if (tokenDictionary != nil) {
+            for (NSString *httpHeaderField in tokenDictionary.allKeys) {
+                NSString *value = tokenDictionary[httpHeaderField];
+                [requestSerializer setValue:value forHTTPHeaderField:httpHeaderField];
+            }
+        }
+    }
+    
     return requestSerializer;
 }
 
@@ -237,7 +267,7 @@
     // Retain request
     YTKLog(@"Add request: %@", NSStringFromClass([request class]));
     [self addRequestToRecord:request];
-    if ([YTKInterpreter sharedInstance].loadingToken) {
+    if ([YTKTokenManager sharedInstance].loadingToken) {
         return;
     }
     [request.requestTask resume];
@@ -365,7 +395,9 @@
 - (void)requestDidSucceedWithRequest:(YTKBaseRequest *)request {
     if (![request tokenValid]) {
         //添加任务
-        [[YTKInterpreter sharedInstance] requestToken];
+        NSString *atoken = [request.requestTask.currentRequest valueForHTTPHeaderField:@"X-token"];
+        NSString *rtoken = [request.requestTask.currentRequest valueForHTTPHeaderField:@"R-token"];
+        [[YTKTokenManager sharedInstance] refreshWithAccessToken:atoken refreshToken:rtoken];
         [self addRequest:[request copy]];
         return;
     }

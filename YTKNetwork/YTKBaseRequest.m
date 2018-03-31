@@ -24,6 +24,7 @@
 #import "YTKBaseRequest.h"
 #import "YTKNetworkAgent.h"
 #import "YTKNetworkPrivate.h"
+#import "YTKTokenManager.h"
 
 #if __has_include(<AFNetworking/AFNetworking.h>)
 #import <AFNetworking/AFNetworking.h>
@@ -80,6 +81,19 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
         return NO;
     }
     return self.requestTask.state == NSURLSessionTaskStateRunning;
+}
+
+
+- (NSString *)accessToken{
+    return [YTKTokenManager sharedInstance].accessToken;
+}
+
+- (NSString *)refreshToken{
+    return [YTKTokenManager sharedInstance].refreshToken;
+}
+
+- (BOOL)tokenValid{
+    return NO;
 }
 
 #pragma mark - Request Configuration
@@ -200,6 +214,10 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
 - (BOOL)statusCodeValidator {
     NSInteger statusCode = [self responseStatusCode];
     return (statusCode >= 200 && statusCode <= 299);
+}
+
+- (BOOL)sendToken{
+    return YES;
 }
 
 #pragma mark - NSObject

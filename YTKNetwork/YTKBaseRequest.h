@@ -124,7 +124,6 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 ///  for constructing request. It's the base class of `YTKRequest`.
 @interface YTKBaseRequest : NSObject
 
-- (BOOL)tokenValid;
 #pragma mark - Request and Response Information
 ///=============================================================================
 /// @name Request and Response Information
@@ -235,6 +234,12 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 ///  Convenience method to add request accessory. See also `requestAccessories`.
 - (void)addAccessory:(id<YTKRequestAccessory>)accessory;
 
+/// accessToken  ; do not override
+- (nullable NSString *)accessToken;
+/// refreshToken ;do not override
+- (nullable NSString *)refreshToken;
+/// check if token is valid ; do not override
+- (BOOL)tokenValid;
 
 #pragma mark - Request Action
 ///=============================================================================
@@ -332,6 +337,10 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 
 ///  This validator will be used to test if `responseStatusCode` is valid.
 - (BOOL)statusCodeValidator;
+
+// 是否传递token
+- (BOOL)sendToken;
+
 
 @end
 

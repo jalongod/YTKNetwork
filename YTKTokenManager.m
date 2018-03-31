@@ -1,14 +1,16 @@
 //
-//  YTKInterpreter.m
+//  YTKTokenManager.m
 //  YTKNetwork iOS
 //
 //  Created by rong on 2018/3/30.
 //  Copyright © 2018年 skyline. All rights reserved.
 //
 
-#import "YTKInterpreter.h"
+#import "YTKTokenManager.h"
 
-@interface YTKInterpreter(){
+NSString * const YTKNotificationTokenGetSuccess = @"YTKNotificationTokenGetSuccess";
+
+@interface YTKTokenManager(){
     dispatch_queue_t queue;
 }
 
@@ -18,35 +20,35 @@
 
 @end
 
-@implementation YTKInterpreter
+@implementation YTKTokenManager
 
 + (instancetype)sharedInstance{
     static dispatch_once_t onceToken;
-    static YTKInterpreter *globalYTKInterpreter = nil;
+    static YTKTokenManager *globalYTKTokenManager = nil;
     dispatch_once(&onceToken, ^{
-        globalYTKInterpreter = [YTKInterpreter new];
+        globalYTKTokenManager = [YTKTokenManager new];
     });
-    return globalYTKInterpreter;
+    return globalYTKTokenManager;
 }
 
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        _accessToken = @"accessToken";
-        _refreshToken = @"refreshToken";
-        
-        queue = dispatch_get_global_queue(0 , 0);
+
+- (NSString *)accessToken{
+    if (!_accessToken) {
+        _accessToken = [[NSUserDefaults standardUserDefaults]objectForKey:@"accessToken"];
+        _accessToken = _accessToken?:@"";
     }
-    return self;
+    return _accessToken;
 }
 
 - (BOOL)validToken:(NSString *)accessToken refreshToken:(NSString *)refreshToken{
     return YES;
 }
 
-- (void)requestToken{
+- (void)refreshWithAccessToken:(NSString *)accessToken refreshToken:(NSString *)refreshToken{
     if (self.loadingToken) {
+        return;
+    }
+    if (![accessToken isEqualToString:self.accessToken]||![refreshToken isEqualToString:self.refreshToken]) {
         return;
     }
     //子线程串行请求网络
@@ -60,10 +62,7 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             __strong typeof(self) strongself = weakself;
             strongself.loadingToken = YES;
-            [[NSNotificationCenter defaultCenter]postNotificationName:@"ytknetworktokensuccess"  object:@{@"atoken":@"newAccessToken",@"ntoken":@"newRefreshToken"}];
-            if (strongself.delegate && [strongself.delegate respondsToSelector:@selector(requestTokenSuccess:refreshToken:)]) {
-                [strongself.delegate requestTokenSuccess:@"newAccessToken"  refreshToken:@"newRefreshToken"];
-            }
+            [[NSNotificationCenter defaultCenter]postNotificationName:YTKNotificationTokenGetSuccess  object:@{@"atoken":@"newAccessToken",@"ntoken":@"newRefreshToken"}];
         });
     });
 }

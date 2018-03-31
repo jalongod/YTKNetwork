@@ -1,5 +1,5 @@
 //
-//  YTKInterpreter.h
+//  YTKTokenManager.h
 //  YTKNetwork iOS
 //
 //  Created by rong on 2018/3/30.
@@ -8,13 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-@protocol YTKTokenDelegate<NSObject>
+NS_ASSUME_NONNULL_BEGIN
 
-- (BOOL)requestTokenSuccess:(NSString *)accessToken refreshToken:(NSString *)refreshToken;
+//token刷新成功后的通知
+extern  NSString * const YTKNotificationTokenGetSuccess;
 
-@end
-
-@interface YTKInterpreter : NSObject
+@interface YTKTokenManager : NSObject
 
 @property (atomic, assign, readonly)BOOL loadingToken;
 @property (nonatomic, copy, readonly)NSString *accessToken;
@@ -22,8 +21,8 @@
 
 + (instancetype)sharedInstance;
 
-@property (nonatomic, weak)id <YTKTokenDelegate> delegate;
-
-- (void)requestToken;
+- (void)refreshWithAccessToken:(NSString *)accessToken refreshToken:(NSString *)refreshToken;
 
 @end
+
+NS_ASSUME_NONNULL_END
