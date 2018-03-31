@@ -9,6 +9,8 @@
 #import "YTKTokenManager.h"
 
 NSString * const YTKNotificationTokenGetSuccess = @"YTKNotificationTokenGetSuccess";
+NSString * const YTKNotificationAccessTokenKey  = @"YTKNotificationAccessTokenKey";
+NSString * const YTKNotificationRefreshTokenKey = @"YTKNotificationRefreshTokenKey";
 
 @interface YTKTokenManager(){
     dispatch_queue_t queue;
@@ -31,7 +33,6 @@ NSString * const YTKNotificationTokenGetSuccess = @"YTKNotificationTokenGetSucce
     return globalYTKTokenManager;
 }
 
-
 - (NSString *)accessToken{
     if (!_accessToken) {
         _accessToken = [[NSUserDefaults standardUserDefaults]objectForKey:@"accessToken"];
@@ -40,8 +41,12 @@ NSString * const YTKNotificationTokenGetSuccess = @"YTKNotificationTokenGetSucce
     return _accessToken;
 }
 
-- (BOOL)validToken:(NSString *)accessToken refreshToken:(NSString *)refreshToken{
-    return YES;
+- (NSString *)refreshToken{
+    if (!_refreshToken) {
+        _refreshToken = [[NSUserDefaults standardUserDefaults]objectForKey:@"refreshToken"];
+        _refreshToken = _accessToken?:@"";
+    }
+    return _accessToken;
 }
 
 - (void)refreshWithAccessToken:(NSString *)accessToken refreshToken:(NSString *)refreshToken{
@@ -62,11 +67,9 @@ NSString * const YTKNotificationTokenGetSuccess = @"YTKNotificationTokenGetSucce
         dispatch_async(dispatch_get_main_queue(), ^{
             __strong typeof(self) strongself = weakself;
             strongself.loadingToken = YES;
-            [[NSNotificationCenter defaultCenter]postNotificationName:YTKNotificationTokenGetSuccess  object:@{@"atoken":@"newAccessToken",@"ntoken":@"newRefreshToken"}];
+            [[NSNotificationCenter defaultCenter]postNotificationName:YTKNotificationTokenGetSuccess  object:@{YTKNotificationAccessTokenKey:@"new--AccessToken",YTKNotificationRefreshTokenKey:@"new--RefreshToken"}];
         });
     });
 }
-
-
 
 @end

@@ -11,7 +11,9 @@
 NS_ASSUME_NONNULL_BEGIN
 
 //token刷新成功后的通知
-extern  NSString * const YTKNotificationTokenGetSuccess;
+extern NSString * const YTKNotificationTokenGetSuccess;
+extern NSString * const YTKNotificationAccessTokenKey;
+extern NSString * const YTKNotificationRefreshTokenKey;
 
 @interface YTKTokenManager : NSObject
 

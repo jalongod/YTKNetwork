@@ -39,6 +39,8 @@
 #define kYTKNetworkIncompleteDownloadFolderName @"Incomplete"
 
 extern NSString * const YTKNotificationTokenGetSuccess;
+extern NSString * const YTKNotificationAccessTokenKey;
+extern NSString * const YTKNotificationRefreshTokenKey;
 
 @implementation YTKNetworkAgent {
     AFHTTPSessionManager *_manager;
@@ -104,8 +106,9 @@ extern NSString * const YTKNotificationTokenGetSuccess;
     if (notify.object) {
         Lock();
         [_requestsRecord enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, YTKBaseRequest * _Nonnull obj, BOOL * _Nonnull stop) {
-            if (obj.requestTask&&[obj.requestTask.currentRequest valueForHTTPHeaderField:@"X-token"]) {
-                [obj.requestTask.currentRequest setValue:[(NSDictionary *)notify.object valueForKey:@"atoken" ] forKey:@"X-token"];
+            if ([obj sendToken]) {
+                [obj.requestTask.currentRequest setValue:[(NSDictionary *)notify.object valueForKey:YTKNotificationAccessTokenKey] forKey:obj.accessTokenKey];
+                [obj.requestTask.currentRequest setValue:[(NSDictionary *)notify.object valueForKey:YTKNotificationRefreshTokenKey] forKey:obj.refreshTokenKey];
             }
             [obj.requestTask resume];
         }];
@@ -184,13 +187,8 @@ extern NSString * const YTKNotificationTokenGetSuccess;
     
     // If api needs to send token value to HTTPHeaderField
     if ([request sendToken]) {
-        NSDictionary<NSString *, NSString *> *tokenDictionary = [request tokenDictionary];
-        if (tokenDictionary != nil) {
-            for (NSString *httpHeaderField in tokenDictionary.allKeys) {
-                NSString *value = tokenDictionary[httpHeaderField];
-                [requestSerializer setValue:value forHTTPHeaderField:httpHeaderField];
-            }
-        }
+        [requestSerializer setValue:[[YTKTokenManager sharedInstance] accessToken] forHTTPHeaderField:request.accessTokenKey];
+        [requestSerializer setValue:[[YTKTokenManager sharedInstance] refreshToken] forHTTPHeaderField:request.refreshTokenKey];
     }
     
     return requestSerializer;
@@ -395,8 +393,8 @@ extern NSString * const YTKNotificationTokenGetSuccess;
 - (void)requestDidSucceedWithRequest:(YTKBaseRequest *)request {
     if (![request tokenValid]) {
         //添加任务
-        NSString *atoken = [request.requestTask.currentRequest valueForHTTPHeaderField:@"X-token"];
-        NSString *rtoken = [request.requestTask.currentRequest valueForHTTPHeaderField:@"R-token"];
+        NSString *atoken = [request currentAccessToken];
+        NSString *rtoken = [request currentRefreshToken];
         [[YTKTokenManager sharedInstance] refreshWithAccessToken:atoken refreshToken:rtoken];
         [self addRequest:[request copy]];
         return;

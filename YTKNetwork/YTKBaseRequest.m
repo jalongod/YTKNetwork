@@ -84,17 +84,18 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
 }
 
 
-- (NSString *)accessToken{
-    return [YTKTokenManager sharedInstance].accessToken;
+- (nullable NSString *)accessToken{
+    return [self.requestTask.currentRequest valueForHTTPHeaderField:self.accessTokenKey];
 }
 
-- (NSString *)refreshToken{
-    return [YTKTokenManager sharedInstance].refreshToken;
+- (nullable NSString *)currentRefreshToken{
+    return [self.requestTask.currentRequest valueForHTTPHeaderField:self.refreshTokenKey];
 }
 
 - (BOOL)tokenValid{
     return NO;
 }
+
 
 #pragma mark - Request Configuration
 
@@ -218,6 +219,14 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
 
 - (BOOL)sendToken{
     return YES;
+}
+
+- (NSString *)accessTokenKey{
+    return @"X-token";
+}
+
+- (NSString *)refreshTokenKey{
+    return @"R-token";
 }
 
 #pragma mark - NSObject
