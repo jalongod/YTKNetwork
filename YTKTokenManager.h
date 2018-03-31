@@ -15,6 +15,9 @@ extern NSString * const YTKNotificationTokenGetSuccess;
 extern NSString * const YTKNotificationAccessTokenKey;
 extern NSString * const YTKNotificationRefreshTokenKey;
 
+extern NSString * const YTKUserDefaultAccessTokenKey;
+extern NSString * const YTKUserDefaultRefreshTokenKey;
+
 @interface YTKTokenManager : NSObject
 
 @property (atomic, assign, readonly)BOOL loadingToken;

@@ -12,6 +12,9 @@ NSString * const YTKNotificationTokenGetSuccess = @"YTKNotificationTokenGetSucce
 NSString * const YTKNotificationAccessTokenKey  = @"YTKNotificationAccessTokenKey";
 NSString * const YTKNotificationRefreshTokenKey = @"YTKNotificationRefreshTokenKey";
 
+NSString * const YTKUserDefaultAccessTokenKey = @"YTKUserDefaultAccessTokenKey";
+NSString * const YTKUserDefaultRefreshTokenKey = @"YTKUserDefaultRefreshTokenKey";
+
 @interface YTKTokenManager(){
     dispatch_queue_t queue;
 }
@@ -35,7 +38,7 @@ NSString * const YTKNotificationRefreshTokenKey = @"YTKNotificationRefreshTokenK
 
 - (NSString *)accessToken{
     if (!_accessToken) {
-        _accessToken = [[NSUserDefaults standardUserDefaults]objectForKey:@"accessToken"];
+        _accessToken = [[NSUserDefaults standardUserDefaults]objectForKey:YTKUserDefaultAccessTokenKey];
         _accessToken = _accessToken?:@"";
     }
     return _accessToken;
@@ -43,7 +46,7 @@ NSString * const YTKNotificationRefreshTokenKey = @"YTKNotificationRefreshTokenK
 
 - (NSString *)refreshToken{
     if (!_refreshToken) {
-        _refreshToken = [[NSUserDefaults standardUserDefaults]objectForKey:@"refreshToken"];
+        _refreshToken = [[NSUserDefaults standardUserDefaults]objectForKey:YTKUserDefaultRefreshTokenKey];
         _refreshToken = _accessToken?:@"";
     }
     return _accessToken;
