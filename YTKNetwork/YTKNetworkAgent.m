@@ -24,6 +24,7 @@
 #import "YTKNetworkAgent.h"
 #import "YTKNetworkConfig.h"
 #import "YTKNetworkPrivate.h"
+#import "YTKInterpreter.h"
 #import <pthread/pthread.h>
 
 #if __has_include(<AFNetworking/AFNetworking.h>)
@@ -73,6 +74,7 @@
         // Take over the status code validation
         _manager.responseSerializer.acceptableStatusCodes = _allStatusCodes;
         _manager.completionQueue = _processingQueue;
+        [[YTKInterpreter sharedInstance]setDelegate:self];
     }
     return self;
 }
@@ -235,6 +237,9 @@
     // Retain request
     YTKLog(@"Add request: %@", NSStringFromClass([request class]));
     [self addRequestToRecord:request];
+    if ([YTKInterpreter sharedInstance].loadingToken) {
+        return;
+    }
     [request.requestTask resume];
 }
 
@@ -358,6 +363,12 @@
 }
 
 - (void)requestDidSucceedWithRequest:(YTKBaseRequest *)request {
+    if (![request tokenValid]) {
+        //添加任务
+        [[YTKInterpreter sharedInstance] requestToken];
+        [self addRequest:[request copy]];
+        return;
+    }
     @autoreleasepool {
         [request requestCompletePreprocessor];
     }

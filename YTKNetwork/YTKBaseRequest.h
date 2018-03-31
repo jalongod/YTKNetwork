@@ -124,6 +124,7 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 ///  for constructing request. It's the base class of `YTKRequest`.
 @interface YTKBaseRequest : NSObject
 
+- (BOOL)tokenValid;
 #pragma mark - Request and Response Information
 ///=============================================================================
 /// @name Request and Response Information
