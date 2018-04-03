@@ -18,5 +18,4 @@ Pod::Spec.new do |s|
   s.framework = "CFNetwork"
 
   s.dependency "AFNetworking", "~> 3.0"
-  s.dependency "TLDEncrytor", "~> 0.1.0"
 end

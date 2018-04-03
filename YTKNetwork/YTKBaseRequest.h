@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
+#import "YTKNetworkDefines.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -234,15 +235,6 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 ///  Convenience method to add request accessory. See also `requestAccessories`.
 - (void)addAccessory:(id<YTKRequestAccessory>)accessory;
 
-/// get current accessToken of the request  ; do not override
-- (nullable NSString *)currentAccessToken;
-
-/// get current refreshToken of the request ;do not override
-
-- (nullable NSString *)currentRefreshToken;
-
-/// check if token is valid ; do not override
-- (BOOL)tokenValid;
 
 #pragma mark - Request Action
 ///=============================================================================
@@ -340,14 +332,6 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 
 ///  This validator will be used to test if `responseStatusCode` is valid.
 - (BOOL)statusCodeValidator;
-
-// 是否传递token
-- (BOOL)sendToken;
-
-/// commonly there is no need to override this method
-- (NSString *)accessTokenKey;
-/// commonly there is no need to override this method
-- (NSString *)refreshTokenKey;
 
 
 @end

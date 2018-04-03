@@ -1,9 +1,10 @@
+source 'http://tfs.teld.cn:8080/tfs/teld/APP/_git/iOS_TLDSpecs'
+source 'https://github.com/CocoaPods/Specs.git'
 target 'YTKNetworkDemo' do
-    pod 'YTKNetwork', :path => '../'
-    pod 'AFNetworking', '~> 3.1'
+    pod 'TLDNetwork', :path => '../'
 end
 
 target 'YTKNetworkDemoTests' do
-    pod 'YTKNetwork', :path => '../'
+    pod 'TLDNetwork',:path => '../'
 end
 

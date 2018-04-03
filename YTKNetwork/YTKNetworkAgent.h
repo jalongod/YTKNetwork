@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
+#import "YTKNetworkDefines.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -36,6 +37,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 ///  Get the shared agent.
 + (YTKNetworkAgent *)sharedAgent;
+
+//ZCR 获取token的接口
+@property (nonatomic, weak)id<YTKGetTokenProtocol> tokenRequest;
+
+//ZCR 打断请求队列的接口
+@property (nonatomic, weak)id<YTKNetBreakProtocol> netBreaker;
 
 ///  Add request to session and start it.
 - (void)addRequest:(YTKBaseRequest *)request;

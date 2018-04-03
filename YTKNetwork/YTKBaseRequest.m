@@ -24,7 +24,6 @@
 #import "YTKBaseRequest.h"
 #import "YTKNetworkAgent.h"
 #import "YTKNetworkPrivate.h"
-#import "YTKTokenManager.h"
 
 #if __has_include(<AFNetworking/AFNetworking.h>)
 #import <AFNetworking/AFNetworking.h>
@@ -81,27 +80,6 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
         return NO;
     }
     return self.requestTask.state == NSURLSessionTaskStateRunning;
-}
-
-
-- (nullable NSString *)accessToken{
-    return [self.requestTask.currentRequest valueForHTTPHeaderField:self.accessTokenKey];
-}
-
-- (nullable NSString *)currentRefreshToken{
-    return [self.requestTask.currentRequest valueForHTTPHeaderField:self.refreshTokenKey];
-}
-
-- (BOOL)tokenValid{
-    if (self.responseJSONObject && [self.responseJSONObject isKindOfClass:[NSDictionary class]]) {
-        NSString *errorCode = self.responseJSONObject[@"errcode"];
-        if (errorCode && [errorCode isKindOfClass:[NSString class]]) {
-            if ([errorCode isEqualToString:@"TTP-SG-1011"] ) {
-                return NO;
-            }
-        }
-    }
-    return YES;
 }
 
 
@@ -225,17 +203,6 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
     return (statusCode >= 200 && statusCode <= 299);
 }
 
-- (BOOL)sendToken{
-    return YES;
-}
-
-- (NSString *)accessTokenKey{
-    return @"X-token";
-}
-
-- (NSString *)refreshTokenKey{
-    return @"R-token";
-}
 
 #pragma mark - NSObject
 

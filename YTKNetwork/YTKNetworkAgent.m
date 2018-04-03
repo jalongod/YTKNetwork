@@ -24,7 +24,6 @@
 #import "YTKNetworkAgent.h"
 #import "YTKNetworkConfig.h"
 #import "YTKNetworkPrivate.h"
-#import "YTKTokenManager.h"
 #import <pthread/pthread.h>
 
 #if __has_include(<AFNetworking/AFNetworking.h>)
@@ -37,10 +36,6 @@
 #define Unlock() pthread_mutex_unlock(&_lock)
 
 #define kYTKNetworkIncompleteDownloadFolderName @"Incomplete"
-
-extern NSString * const YTKNotificationTokenGetSuccess;
-extern NSString * const YTKNotificationAccessTokenKey;
-extern NSString * const YTKNotificationRefreshTokenKey;
 
 @implementation YTKNetworkAgent {
     AFHTTPSessionManager *_manager;
@@ -78,7 +73,6 @@ extern NSString * const YTKNotificationRefreshTokenKey;
         // Take over the status code validation
         _manager.responseSerializer.acceptableStatusCodes = _allStatusCodes;
         _manager.completionQueue = _processingQueue;
-        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(onTokenGetSuccess:) name:YTKNotificationTokenGetSuccess object:nil];
     }
     return self;
 }
@@ -98,22 +92,6 @@ extern NSString * const YTKNotificationRefreshTokenKey;
         _xmlParserResponseSerialzier.acceptableStatusCodes = _allStatusCodes;
     }
     return _xmlParserResponseSerialzier;
-}
-
-#pragma mark - notification
-
-- (void)onTokenGetSuccess:(NSNotification *)notify{
-    if (notify.object) {
-        Lock();
-        [_requestsRecord enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, YTKBaseRequest * _Nonnull obj, BOOL * _Nonnull stop) {
-            if ([obj sendToken]) {
-                [obj.requestTask.currentRequest setValue:[(NSDictionary *)notify.object valueForKey:YTKNotificationAccessTokenKey] forKey:obj.accessTokenKey];
-                [obj.requestTask.currentRequest setValue:[(NSDictionary *)notify.object valueForKey:YTKNotificationRefreshTokenKey] forKey:obj.refreshTokenKey];
-            }
-            [obj.requestTask resume];
-        }];
-        Unlock();
-    }
 }
 
 
@@ -183,12 +161,6 @@ extern NSString * const YTKNotificationRefreshTokenKey;
             NSString *value = headerFieldValueDictionary[httpHeaderField];
             [requestSerializer setValue:value forHTTPHeaderField:httpHeaderField];
         }
-    }
-    
-    // If api needs to send token value to HTTPHeaderField
-    if ([request sendToken]) {
-        [requestSerializer setValue:[[YTKTokenManager sharedInstance] accessToken] forHTTPHeaderField:request.accessTokenKey];
-        [requestSerializer setValue:[[YTKTokenManager sharedInstance] refreshToken] forHTTPHeaderField:request.refreshTokenKey];
     }
     
     return requestSerializer;
@@ -265,9 +237,12 @@ extern NSString * const YTKNotificationRefreshTokenKey;
     // Retain request
     YTKLog(@"Add request: %@", NSStringFromClass([request class]));
     [self addRequestToRecord:request];
-    if ([YTKTokenManager sharedInstance].loadingToken) {
+    if ([self.tokenRequest loadingToken]) {
         return;
     }
+//    if ([YTKTokenManager sharedInstance].loadingToken) {
+//        return;
+//    }
     [request.requestTask resume];
 }
 
@@ -391,14 +366,27 @@ extern NSString * const YTKNotificationRefreshTokenKey;
 }
 
 - (void)requestDidSucceedWithRequest:(YTKBaseRequest *)request {
-    if (![request tokenValid]) {
-        //添加任务
-        NSString *atoken = [request currentAccessToken];
-        NSString *rtoken = [request currentRefreshToken];
-        [[YTKTokenManager sharedInstance] refreshWithAccessToken:atoken refreshToken:rtoken];
+    //ZCR 校对本地时间
+    if ([self.netBreaker shouldRefreshTimeByRequest:request]) {
         [self addRequest:[request copy]];
         return;
     }
+    //ZCR 处理token失效
+    if (![self.netBreaker shouldBreakByRequest:request]) {
+        //添加任务
+        __weak typeof(self) weakself = self;
+        [self.tokenRequest requestTokenWithCallBack:^(BOOL success) {
+            __strong typeof(self) strongself = weakself;
+            pthread_mutex_lock(&strongself->_lock);
+            [strongself->_requestsRecord enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, YTKBaseRequest * _Nonnull obj, BOOL * _Nonnull stop) {
+                [obj.requestTask resume];
+            }];
+            pthread_mutex_unlock(&strongself->_lock);
+        }];
+        [self addRequest:[request copy]];
+        return;
+    }
+    
     @autoreleasepool {
         [request requestCompletePreprocessor];
     }

@@ -24,6 +24,7 @@
 		BF007FE419FF972C00816462 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BF007FE319FF972C00816462 /* Images.xcassets */; };
 		BF007FE719FF972C00816462 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = BF007FE519FF972C00816462 /* LaunchScreen.xib */; };
 		BF007FF319FF972C00816462 /* YTKNetworkDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF007FF219FF972C00816462 /* YTKNetworkDemoTests.m */; };
+		E719D78C20735C2A000DA748 /* RequestTokenApi.m in Sources */ = {isa = PBXBuildFile; fileRef = E719D78B20735C2A000DA748 /* RequestTokenApi.m */; };
 		E7DBFFAA206F15C4004DF5D3 /* GetBaiduApi.m in Sources */ = {isa = PBXBuildFile; fileRef = E7DBFFA9206F15C4004DF5D3 /* GetBaiduApi.m */; };
 		EDD64A8FB57EEC11DE6CEB4E /* libPods-YTKNetworkDemoTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 573535265CF5ECF05E1BBD90 /* libPods-YTKNetworkDemoTests.a */; };
 /* End PBXBuildFile section */
@@ -73,6 +74,8 @@
 		BF007FF119FF972C00816462 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BF007FF219FF972C00816462 /* YTKNetworkDemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YTKNetworkDemoTests.m; sourceTree = "<group>"; };
 		D30149728A908A3BBCCE924A /* Pods-YTKNetworkDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YTKNetworkDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-YTKNetworkDemo/Pods-YTKNetworkDemo.release.xcconfig"; sourceTree = "<group>"; };
+		E719D78A20735C2A000DA748 /* RequestTokenApi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RequestTokenApi.h; sourceTree = "<group>"; };
+		E719D78B20735C2A000DA748 /* RequestTokenApi.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RequestTokenApi.m; sourceTree = "<group>"; };
 		E7DBFFA8206F15C4004DF5D3 /* GetBaiduApi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GetBaiduApi.h; sourceTree = "<group>"; };
 		E7DBFFA9206F15C4004DF5D3 /* GetBaiduApi.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GetBaiduApi.m; sourceTree = "<group>"; };
 		F3A8BAC1ADCD712EF8786C33 /* Pods-YTKNetworkDemoTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YTKNetworkDemoTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-YTKNetworkDemoTests/Pods-YTKNetworkDemoTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -150,6 +153,8 @@
 		BF007FD519FF972C00816462 /* YTKNetworkDemo */ = {
 			isa = PBXGroup;
 			children = (
+				E719D78A20735C2A000DA748 /* RequestTokenApi.h */,
+				E719D78B20735C2A000DA748 /* RequestTokenApi.m */,
 				45F710821A466D01001957BA /* UploadImageApi.h */,
 				45F710831A466D01001957BA /* UploadImageApi.m */,
 				45AB19BF1A4656A600680858 /* YTKUrlArgumentsFilter.h */,
@@ -422,6 +427,7 @@
 				45BF1D431A0DC40F00DDB7E0 /* GetUserInfoApi.m in Sources */,
 				BF007FDC19FF972C00816462 /* AppDelegate.m in Sources */,
 				45F710841A466D01001957BA /* UploadImageApi.m in Sources */,
+				E719D78C20735C2A000DA748 /* RequestTokenApi.m in Sources */,
 				BF007FD919FF972C00816462 /* main.m in Sources */,
 				20D2D9751D268808009E13A2 /* YTKChainRequest+AnimatingAccessory.m in Sources */,
 				20D2D9731D268808009E13A2 /* YTKBaseRequest+AnimatingAccessory.m in Sources */,
