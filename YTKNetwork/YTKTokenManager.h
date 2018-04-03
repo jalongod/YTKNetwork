@@ -23,6 +23,7 @@ extern NSString * const YTKUserDefaultRefreshTokenKey;
 @property (atomic, assign, readonly)BOOL loadingToken;
 @property (nonatomic, copy, readonly)NSString *accessToken;
 @property (nonatomic, copy, readonly)NSString *refreshToken;
+@property (nonatomic, copy)NSString *uuid;
 
 + (instancetype)sharedInstance;
 

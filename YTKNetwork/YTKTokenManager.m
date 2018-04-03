@@ -62,6 +62,17 @@ NSString * const YTKUserDefaultRefreshTokenKey = @"YTKUserDefaultRefreshTokenKey
     //子线程串行请求网络
     self.loadingToken = YES;
     //
+    
+//    NSDictionary *json = @{@"DeviceId"      : [TLDUUID getUUID],
+//                           @"DeviceType"    : @"APP",
+//                           @"ReqSource"     : @"4",
+//                           @"refreshToken"  : refreshToken
+//                           };
+//    NSString *encrypJson = [TLDDesEncrytor DESEncrypUserApiSGPlainText:[json toJSONString]];
+//    NSDictionary *encrypParamsDic = @{@"SID"            : @"UserAPI-APP-NRefreshToken",
+//                                      @"refreshToken"   : encrypJson};
+    
+    
     __weak typeof(self) weakself = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
         __strong typeof(self) strongself = weakself;

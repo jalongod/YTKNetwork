@@ -93,7 +93,15 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
 }
 
 - (BOOL)tokenValid{
-    return NO;
+    if (self.responseJSONObject && [self.responseJSONObject isKindOfClass:[NSDictionary class]]) {
+        NSString *errorCode = self.responseJSONObject[@"errcode"];
+        if (errorCode && [errorCode isKindOfClass:[NSString class]]) {
+            if ([errorCode isEqualToString:@"TTP-SG-1011"] ) {
+                return NO;
+            }
+        }
+    }
+    return YES;
 }
 
 
