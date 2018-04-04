@@ -37,6 +37,8 @@
 
 #define kYTKNetworkIncompleteDownloadFolderName @"Incomplete"
 
+#define YTKWeakSelf __weak typeof(self) weakself = self;
+#define YTKStrongSelf __strong typeof(self) strongself = weakself;
 @implementation YTKNetworkAgent {
     AFHTTPSessionManager *_manager;
     YTKNetworkConfig *_config;
@@ -237,13 +239,11 @@
     // Retain request
     YTKLog(@"Add request: %@", NSStringFromClass([request class]));
     [self addRequestToRecord:request];
-    if ([self.tokenRequest loadingToken]) {
-        return;
+    
+    //ZCR 校验是否立刻发起请求
+    if ([self.netBreaker shouldResumeRequestImmediately:request]) {
+        [request.requestTask resume];
     }
-//    if ([YTKTokenManager sharedInstance].loadingToken) {
-//        return;
-//    }
-    [request.requestTask resume];
 }
 
 - (void)cancelRequest:(YTKBaseRequest *)request {
@@ -366,24 +366,27 @@
 }
 
 - (void)requestDidSucceedWithRequest:(YTKBaseRequest *)request {
+    NSLog(@"request=======" );
     //ZCR 校对本地时间
-    if ([self.netBreaker shouldRefreshTimeByRequest:request]) {
+    if (self.netBreaker&&[self.netBreaker shouldBreakNetwork:request]) {
         [self addRequest:[request copy]];
         return;
     }
     //ZCR 处理token失效
-    if (![self.netBreaker shouldBreakByRequest:request]) {
-        //添加任务
-        __weak typeof(self) weakself = self;
-        [self.tokenRequest requestTokenWithCallBack:^(BOOL success) {
-            __strong typeof(self) strongself = weakself;
-            pthread_mutex_lock(&strongself->_lock);
-            [strongself->_requestsRecord enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, YTKBaseRequest * _Nonnull obj, BOOL * _Nonnull stop) {
-                [obj.requestTask resume];
-            }];
-            pthread_mutex_unlock(&strongself->_lock);
-        }];
-        [self addRequest:[request copy]];
+    if (self.netBreaker&&[self.netBreaker shouldBreakForTokenInvalid:request]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            YTKWeakSelf
+            YTKGetTokenCallback callback =  ^(BOOL success) {
+                YTKStrongSelf
+                pthread_mutex_lock(&strongself->_lock);
+                [strongself->_requestsRecord enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, YTKBaseRequest * _Nonnull obj, BOOL * _Nonnull stop) {
+                    [obj.requestTask resume];
+                }];
+                pthread_mutex_unlock(&strongself->_lock);
+            };
+            [self.tokenRequest requestTokenWithCallBack:callback];
+            [self addRequest:[request copy]];
+        });
         return;
     }
     
