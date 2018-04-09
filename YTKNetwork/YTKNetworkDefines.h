@@ -13,21 +13,12 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class YTKBaseRequest;
-
-typedef void (^YTKGetTokenCallback)(BOOL success);
-
-@protocol YTKGetTokenProtocol <NSObject>
-
-- (BOOL) requestingToken;
-- (void) requestTokenWithCallBack:(nullable YTKGetTokenCallback)callBack;
-
-@end
+@class YTKNetworkAgent;
 
 @protocol YTKNetBreakProtocol <NSObject>
 
-- (BOOL) shouldResumeRequestImmediately:(YTKBaseRequest *)request;
-- (BOOL) shouldBreakForTokenInvalid:(YTKBaseRequest *)request;
-- (BOOL) shouldBreakNetwork:(YTKBaseRequest *)request;//本地时间与服务器时间校验不一致
+- (BOOL) agent:(YTKNetworkAgent *)agent shouldResumeRequestImmediately:(YTKBaseRequest *)request;
+- (BOOL) agent:(YTKNetworkAgent *)agent shouldBreakNetwork:(YTKBaseRequest *)request;
 
 @end
 

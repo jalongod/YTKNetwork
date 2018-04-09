@@ -39,12 +39,19 @@
 
 #define YTKWeakSelf __weak typeof(self) weakself = self;
 #define YTKStrongSelf __strong typeof(self) strongself = weakself;
+
+@interface YTKNetworkAgent()
+
+@property (nonatomic, strong)NSMutableDictionary<NSNumber *, YTKBaseRequest *> *requestsRecord;
+@property (nonatomic, strong)AFHTTPSessionManager *manager;
+
+@end
+
 @implementation YTKNetworkAgent {
-    AFHTTPSessionManager *_manager;
+    
     YTKNetworkConfig *_config;
     AFJSONResponseSerializer *_jsonResponseSerializer;
     AFXMLParserResponseSerializer *_xmlParserResponseSerialzier;
-    NSMutableDictionary<NSNumber *, YTKBaseRequest *> *_requestsRecord;
 
     dispatch_queue_t _processingQueue;
     pthread_mutex_t _lock;
@@ -83,6 +90,7 @@
     if (!_jsonResponseSerializer) {
         _jsonResponseSerializer = [AFJSONResponseSerializer serializer];
         _jsonResponseSerializer.acceptableStatusCodes = _allStatusCodes;
+        _jsonResponseSerializer.removesKeysWithNullValues = YES;
 
     }
     return _jsonResponseSerializer;
@@ -196,6 +204,8 @@
 }
 
 - (void)addRequest:(YTKBaseRequest *)request {
+    
+  
     NSParameterAssert(request != nil);
 
     NSError * __autoreleasing requestSerializationError = nil;
@@ -241,7 +251,7 @@
     [self addRequestToRecord:request];
     
     //ZCR 校验是否立刻发起请求
-    if ([self.netBreaker shouldResumeRequestImmediately:request]) {
+    if ([self.netBreaker agent:self shouldResumeRequestImmediately:request]) {
         [request.requestTask resume];
     }
 }
@@ -353,42 +363,52 @@
         requestError = validationError;
     }
 
+    BOOL breakRecord = YES;
     if (succeed) {
-        [self requestDidSucceedWithRequest:request];
+        breakRecord = [self shouldBreakRequest:request];
+        if (!breakRecord) {
+            [self requestDidSucceedWithRequest:request];
+        }
     } else {
         [self requestDidFailWithRequest:request error:requestError];
     }
 
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self removeRequestFromRecord:request];
-        [request clearCompletionBlock];
-    });
+    if (breakRecord) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self removeRequestFromRecord:request];
+            [request clearCompletionBlock];
+        });
+    }
+}
+
+- (void)restartRequest:(YTKBaseRequest *)request{
+    Lock();
+    request.requestTask = [self sessionTaskForRequest:request error:nil];
+    [request.requestTask resume];
+    Unlock();
+}
+
+- (void)restartAllTokenRequest{
+    Lock();
+    YTKWeakSelf
+    [_requestsRecord enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, YTKBaseRequest * _Nonnull obj, BOOL * _Nonnull stop) {
+        if ([[obj.requestTask.originalRequest.allHTTPHeaderFields allKeys] containsObject:@"X-Token" ]&&![[obj.requestTask.originalRequest.allHTTPHeaderFields valueForKey:@"X-Token"] isEqualToString:@"" ]) {//是
+            obj.requestTask = [weakself sessionTaskForRequest:obj error:nil];
+            [obj.requestTask resume];
+        }
+    }];
+    Unlock();
+}
+
+- (BOOL)shouldBreakRequest:(YTKBaseRequest *)request{
+    if (!self.netBreaker) {
+        return NO;
+    }
+    return [self.netBreaker agent:self shouldBreakNetwork:request];
 }
 
 - (void)requestDidSucceedWithRequest:(YTKBaseRequest *)request {
-    NSLog(@"request=======" );
-    //ZCR 校对本地时间
-    if (self.netBreaker&&[self.netBreaker shouldBreakNetwork:request]) {
-        [self addRequest:[request copy]];
-        return;
-    }
-    //ZCR 处理token失效
-    if (self.netBreaker&&[self.netBreaker shouldBreakForTokenInvalid:request]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            YTKWeakSelf
-            YTKGetTokenCallback callback =  ^(BOOL success) {
-                YTKStrongSelf
-                pthread_mutex_lock(&strongself->_lock);
-                [strongself->_requestsRecord enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, YTKBaseRequest * _Nonnull obj, BOOL * _Nonnull stop) {
-                    [obj.requestTask resume];
-                }];
-                pthread_mutex_unlock(&strongself->_lock);
-            };
-            [self.tokenRequest requestTokenWithCallBack:callback];
-            [self addRequest:[request copy]];
-        });
-        return;
-    }
+    NSLog(@"requestDidSucceedWithRequest %@",request.requestUrl );
     
     @autoreleasepool {
         [request requestCompletePreprocessor];

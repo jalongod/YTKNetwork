@@ -107,6 +107,10 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
 #pragma mark - Request Action
 
 - (void)start {
+    if (![self argumentsValid]) {
+        @throw [NSException exceptionWithName:@"params invalid"  reason:@"params invalid"  userInfo:nil];
+        return;
+    }
     [self toggleAccessoriesWillStartCallBack];
     [[YTKNetworkAgent sharedAgent] addRequest:self];
 }
@@ -125,6 +129,10 @@ NSString *const YTKRequestValidationErrorDomain = @"com.yuantiku.request.validat
 }
 
 #pragma mark - Subclass Override
+
+- (BOOL)argumentsValid{
+    return YES;
+}
 
 - (void)requestCompletePreprocessor {
 }

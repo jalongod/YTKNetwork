@@ -257,6 +257,9 @@ typedef void(^YTKRequestCompletionBlock)(__kindof YTKBaseRequest *request);
 /// @name Subclass Override
 ///=============================================================================
 
+//ZCR 检查参数是否合法
+- (BOOL)argumentsValid;
+
 ///  Called on background thread after request succeded but before switching to main thread. Note if
 ///  cache is loaded, this method WILL be called on the main thread, just like `requestCompleteFilter`.
 - (void)requestCompletePreprocessor;

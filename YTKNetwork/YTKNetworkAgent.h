@@ -23,6 +23,7 @@
 
 #import <Foundation/Foundation.h>
 #import "YTKNetworkDefines.h"
+#import "AFHTTPSessionManager.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -38,11 +39,9 @@ NS_ASSUME_NONNULL_BEGIN
 ///  Get the shared agent.
 + (YTKNetworkAgent *)sharedAgent;
 
-//ZCR 获取token的接口
-@property (nonatomic, weak)id<YTKGetTokenProtocol> tokenRequest;
-
 //ZCR 打断请求队列的接口
 @property (nonatomic, weak)id<YTKNetBreakProtocol> netBreaker;
+@property (nonatomic, strong, readonly)AFHTTPSessionManager *manager;
 
 ///  Add request to session and start it.
 - (void)addRequest:(YTKBaseRequest *)request;
@@ -59,6 +58,10 @@ NS_ASSUME_NONNULL_BEGIN
 ///
 ///  @return The result URL.
 - (NSString *)buildRequestUrl:(YTKBaseRequest *)request;
+
+- (void)restartRequest:(YTKBaseRequest *)request;
+
+- (void)restartAllTokenRequest;
 
 @end
 
